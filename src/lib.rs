@@ -13,8 +13,11 @@ pub struct Message {
     pub body: Vec<u8>,
 }
 
-pub fn message_store(message: &Message) -> Result<(), Box<dyn std::error::Error>> {
-    let mut file = std::fs::File::create(format!("messages/{:07}.txt", message.uid))?;
+pub fn message_store(
+    message: &Message,
+    save_dir: String,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let mut file = std::fs::File::create(format!("{}/{:07}.eml", save_dir, message.uid))?;
 
     file.write_all(&message.body)?;
 
@@ -93,7 +96,7 @@ pub fn highest_message_number(imap_session: &mut ImapSession) -> u64 {
     lower
 }
 
-pub fn messages_store_from(base: u64, imap_session: &mut ImapSession) {
+pub fn messages_store_from(base: u64, imap_session: &mut ImapSession, save_dir: String) {
     let max = highest_message_number(imap_session);
     println!("Going up to {}", max);
 
@@ -109,7 +112,7 @@ pub fn messages_store_from(base: u64, imap_session: &mut ImapSession) {
 
         println!("batching {}:{}", lower, upper);
         for message in messages(lower, upper, imap_session).into_iter() {
-            message_store(&message).unwrap();
+            message_store(&message, save_dir.clone()).unwrap();
         }
     }
 }
